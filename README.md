@@ -93,7 +93,7 @@ pip install snakemake
 5. **Reference Data**: A directory containing all necessary reference files (e.g., bowtie2 indices and GTF annotation, etc.).
 
 **Note on Sequencing Type:**
-This pipeline supports both paired-end (PE)  sequencing data. The example below shows the format for paired-end data.
+This pipeline supports paired-end (PE)  sequencing data. The example below shows the format for paired-end data.
 
 ### 1. Prepare the Reference Genome
 
