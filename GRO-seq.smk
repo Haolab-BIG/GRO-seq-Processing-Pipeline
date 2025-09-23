@@ -46,11 +46,11 @@ rule trim_fastq:
 
 rule remove_additional_nucleotide:
     input:
-        trimmed_FQ1=temp("qc/{sample}/{sample}_R1_val_1.fq.gz"),
-        trimmed_FQ2=temp("qc/{sample}/{sample}_R2_val_2.fq.gz"),
+        trimmed_FQ1="qc/{sample}/{sample}_R1_val_1.fq.gz"),
+        trimmed_FQ2="qc/{sample}/{sample}_R2_val_2.fq.gz"),
     output:
-        remove_additional_nuc_FQ1="qc/{sample}/{sample}_R1_result_trimmed.fastq",
-        remove_additional_nuc_FQ2="qc/{sample}/{sample}_R2_result_trimmed.fastq",
+        remove_additional_nuc_FQ1=temp("qc/{sample}/{sample}_R1_result_trimmed.fastq"),
+        remove_additional_nuc_FQ2=temp("qc/{sample}/{sample}_R2_result_trimmed.fastq"),
     container:
         "proseq.sif"
     shell:
