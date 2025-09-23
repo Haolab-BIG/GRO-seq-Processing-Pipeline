@@ -27,8 +27,8 @@ rule qc_before_filtered:
 
 rule trim_fastq:
     input:
-        html_R1=temp("qc/{sample}/{sample}_R1_fastqc.html"),
-        html_R2=temp("qc/{sample}/{sample}_R2_fastqc.html"),
+        html_R1="qc/{sample}/{sample}_R1_fastqc.html",
+        html_R2="qc/{sample}/{sample}_R2_fastqc.html",
     output:
         trimmed_FQ1=temp("qc/{sample}/{sample}_R1_val_1.fq.gz"),
         trimmed_FQ2=temp("qc/{sample}/{sample}_R2_val_2.fq.gz"),
@@ -232,11 +232,13 @@ rule sort_PE1:
         noMT_BAM_index="data/{sample}_noMT.bam.bai",
     output:
         sort_PE1_BAM="data/{sample}_PE1.bam",
+    params:
+        noMT_BAM="data/{sample}_noMT.bam",
     container:
         "proseq.sif"
     shell:
         """
-        samtools view -b -f 64 data/{wildcards.sample}_noMT.bam | \
+        samtools view -b -f 64 {params.noMT_BAM} | \
         samtools sort - -@ 16 > {output.sort_PE1_BAM}
         """
         
