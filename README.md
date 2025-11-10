@@ -2,11 +2,11 @@
 
 The GRO-seq analysis pipeline processes raw FASTQ data through a series of steps including adapter trimming, quality control, genome mapping, peak calling, mRNA contamination, pause index, and TSS enrichment analysis. Using Singularity for reproducibility and supporting batch analysis of multiple samples.
 
-## Workflow Diagram
+# Part I Workflow
 
 ![](https://github.com/Haolab-BIG/GRO-seq-Processing-Pipeline/raw/main/picture/GRO-seq_pipeline.png)
 
-## Requirements
+# Part II Requirements
 
 1. **Recommended System Configuration**:
 
@@ -248,6 +248,13 @@ Before the pipeline, the input directory contain several files and directories. 
     └── pyTssEnrichment.py
 
 ```
+- **GRO-seq.smk** — The main Snakemake workflow script.
+- **config.yaml** — Configuration file containing paths, parameters, and sample information.
+  ⚠️ Must be located in the same directory as `GRO-seq.smk`.
+- **proseq.sif** — Singularity container image with all required software and dependencies pre-installed.
+- **dag.svg**— Detailed pipeline DAG picture.
+- **scripts** — Additional scripts required for program execution.
+- **data** — Reference genome index and rDNA index for bowtie2,samples which were sequenced and other required files which are listed as follows.
 #### Per-Sample Files (`data/samples/`)
 
 - **`plus_TSS.tsv`**
@@ -314,10 +321,30 @@ chr1    12613   12721   ENST00000832825.1       ENSG00000290825.2       +
 - **`annotation.gtf`**
   - **Content**: This is the genome annotation gtf file.
   - **Application**: It is used for pause_index rule in snakemake workflow.
-## Running
+# Part III Running
 
 After adding the corresponding parameters in config.yaml,you can execute the pipeline using a single command, the only important parameter is thread (**-j**).
-### Example Commands
+**Example code**
+
+* **Step 1: Edit `config.yaml`**
+
+```shell
+samples:
+    SRR25723299: 
+        R1 : "data/samples/SRR25723299_R1.fastq.gz"
+        R2 : "data/samples/SRR25723299_R2.fastq.gz"
+fn_gtf : "data/gencode.v48.primary_assembly.annotation.gtf"
+fa_in : 'data/GRCh38.primary_assembly.genome.fa'
+exon_name : "data/gencode.v48.primary_assembly_exons_no_first_exon.bed"
+intron_name : "data/gencode.v48.primary_assembly_introns.bed"
+BOWTIE2_RDNAIDX : "data/GRCh38.primary_assembly.rDNA.bowtie2_index/GRCh38.primary_assembly.rDNA"
+BOWTIE2IDX : "data/GRCh38.primary_assembly.genome.bowtie2_index/GRCh38.primary_assembly.genome"
+home : "/mnt/liuq/test/singularity"
+container : "proseq.sif"
+species : "hsa"
+```
+
+* **Step 2: run snakemake**
 
 Here /mnt/liuq/test/singularity/ represents the root directory.
 
@@ -327,6 +354,28 @@ snakemake -s GRO-seq.smk \
           --use-singularity \
           --singularity-args "--bind /mnt/liuq/test/singularity/:/root/"
 ```
+
+**Command Parameters**
+
+**edit `config.yaml`**
+
+- `samples`: Path to the FASTQ file. For paired-end data (required)
+- `BOWTIE2_RDNAIDX`: Path to the directory where bowtie2 reference build with prefix (required)
+- `BOWTIE2IDX`: Path to the directory where bowtie2 rDNA reference build with prefix (required)
+- `container`: Path to the singularity environment file (required)
+- `exon_name`: Browser Extensible Data (BED) format file used to describe the exons (do not include the first exon of each transcript) position of the chromosome.Its fourth column is the transcript ID, and the fifth column is the gene ID (required)
+- `intron_name`: Browser Extensible Data (BED) format file used to describe the introns position of the chromosome.Its fourth column is the transcript ID, and the fifth column is the gene ID (required)
+- `fa_in` : Reference Genome FASTA (required)
+- `fn_gtf` : Reference Genome GTF Annotation (required)
+- `home`: The root directory where running program (required)
+- `species`: species which was sequenced (required)
+
+**run snakemake**
+
+- `--use-singularity`: Enables execution of rules within a Singularity container to ensure a fully reproducible environment.
+- `--singularity-args`: Allows passing additional arguments to the Singularity runtime (e.g., `--bind`, `--nv`, or custom options).
+- `--cores`: Specifies the maximum number of CPU cores (threads) that Snakemake can use in parallel when executing workflow rules.
+- `--bind`: Specifies the directories to be mounted within the Singularity container. Include all required paths such as raw data, scripts, container images, and references. The format is `/project_directory:/project_directory`. Multiple directories can be mounted by separating them with commas, for example: `/path1:/path1,/path2:/path2` (required)
 
 Then delete the intermediate files and folders
 
@@ -427,7 +476,7 @@ After the pipeline completes, the output directory will contain several files an
   
 - **`fastqc.html(zip)`**
   
-  - **Content**: Open multiqc_report.html in a web browser to explore all sections interactively.Similar to the above multiqc results.
+  - **Content**: Open fastqc.html in a web browser to explore all sections interactively.Similar to the above multiqc results.
   
   - **Application**:This is the first file you should check to assess the overall quality of your sequencing data. It helps identify problematic samples (e.g., high duplication) .Similar to the above multiqc results.
   
